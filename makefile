@@ -7,7 +7,8 @@ RMD=/bin/rm -Rf
 	cp -R base_files/* $(CLUSTER_NAME)
 	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
 	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
-	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;mv config ~/.kube
+	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;
+	cd $(CLUSTER_NAME);ls;sudo mv config ~/.kube
 	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
 	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
 	cd $(CLUSTER_NAME);ls;rm plan.txt
