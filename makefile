@@ -2,30 +2,17 @@ RM=/bin/rm -f
 RMD=/bin/rm -Rf
 
 
-.create-eks-cluster_ec2:
+.create-eks-cluster:
 	mkdir -p $(CLUSTER_NAME)
 	cp -R base_files/* $(CLUSTER_NAME)
 	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
 	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
 	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;
-	cd $(CLUSTER_NAME);ls;sudo mv config ~/.kube
+	cd $(CLUSTER_NAME);ls;mkdir -p  ~/.kube;sudo mv config ~/.kube
 	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
 	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
 	cd $(CLUSTER_NAME);ls;rm plan.txt
 	make -s .helm-install
-	make -s CLUSTER_NAME=$(CLUSTER_NAME) .install-kubernetes-dashboard
-	kubectl get pods -n kube-system
-
-.create-eks-cluster:
-	echo $(SUDOPASSWORD) | mkdir -p $(CLUSTER_NAME)
-	cp -R base_files/* $(CLUSTER_NAME)
-	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
-	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
-	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;mv config ~/.kube
-	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
-	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
-	cd $(CLUSTER_NAME);ls;rm plan.txt
-	make -s SUDOPASSWORD=$(SUDOPASSWORD) .helm-install
 	make -s CLUSTER_NAME=$(CLUSTER_NAME) .install-kubernetes-dashboard
 	kubectl get pods -n kube-system
 
@@ -167,27 +154,17 @@ RMD=/bin/rm -Rf
 .delete-s2i:
 	-$(RM) /usr/local/bin/s2i
 
-	
+#following target is used only for testing from local
+.create-eks-cluster_local:
+	echo $(SUDOPASSWORD) | mkdir -p $(CLUSTER_NAME)
+	cp -R base_files/* $(CLUSTER_NAME)
+	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
+	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
+	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;mv config ~/.kube
+	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
+	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
+	cd $(CLUSTER_NAME);ls;rm plan.txt
+	make -s SUDOPASSWORD=$(SUDOPASSWORD) .helm-install
+	make -s CLUSTER_NAME=$(CLUSTER_NAME) .install-kubernetes-dashboard
+	kubectl get pods -n kube-system
 
-
-.helm-install_ec2:.install-helm-bin_ec2 
-	kubectl -n kube-system create serviceaccount tiller
-	kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
-	helm init --service-account=tiller
-	-helm repo update
-
-
-.install-helm-bin_ec2:
-	curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.10.0-rc.2-linux-amd64.tar.gz | tar -xzv
-	sudo -S cp linux-amd64/helm /usr/local/bin
-	${RMD} linux-amd64
-	helm home
-
-
-.install-kubernetes-client_ec2:
-	sudo apt-get update && sudo apt-get install -y apt-transport-https
-	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-	sudo touch /etc/apt/sources.list.d/kubernetes.list 
-	echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-	sudo apt-get update
-	sudo apt-get install -y kubectl
