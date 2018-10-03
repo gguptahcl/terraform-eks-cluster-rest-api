@@ -1,6 +1,20 @@
 RM=/bin/rm -f
 RMD=/bin/rm -Rf
 
+
+.create-eks-cluster_ec2:
+	mkdir -p $(CLUSTER_NAME)
+	cp -R base_files/* $(CLUSTER_NAME)
+	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
+	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
+	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;mv config ~/.kube
+	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
+	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
+	cd $(CLUSTER_NAME);ls;rm plan.txt
+	make -s .helm-install
+	make -s CLUSTER_NAME=$(CLUSTER_NAME) .install-kubernetes-dashboard
+	kubectl get pods -n kube-system
+
 .create-eks-cluster:
 	echo $(SUDOPASSWORD) | mkdir -p $(CLUSTER_NAME)
 	cp -R base_files/* $(CLUSTER_NAME)
@@ -153,47 +167,18 @@ RMD=/bin/rm -Rf
 	-$(RM) /usr/local/bin/s2i
 
 	
-.test:
-	mkdir -p test_1
-	make -s .test2
 
-.test2:
-	cd test2;sed -z 's/^\s*//' tempConfig
 
-.create-eks-cluster_WIP:
-	echo $(SUDOPASSWORD) | mkdir -p $(CLUSTER_NAME)
-	cp original_files/* $(CLUSTER_NAME)
-	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
-	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
-	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config
-	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
-	cd $(CLUSTER_NAME);ls;mv config ~/.kube;rm plan.txt
-	make -s .helm-install
-	make -s .install-kubernetes-dashboard
-	#cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  tempAwsAuth.yaml;terraform output kubeconfig  >  tempConfig
-	#cd $(CLUSTER_NAME);ls;sed -z '/s///^\s*//; s/\s*$//' tempAwsAuth.yaml > awsAuth.yaml
-	#;sed -z 's/^\s*//; s/\s*$//' tempConfig > config
-	#echo $(SUDOPASSWORD) | sudo -S apt-get install unzip
-	#wget https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
-	#mkdir temp_for_zip_extract
-	#unzip terraform_0.11.8_linux_amd64.zip -d temp_for_zip_extract
-	#sudo mv temp_for_zip_extract/terraform /usr/local/bin/
-	#rm -R temp_for_zip_extract
-	#rm terraform_0.11.8_linux_amd64.zip
-	
-
-.install-helm-bin_orig:
-	curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.10.0-rc.2-linux-amd64.tar.gz | tar -xzv
-	#echo $(SUDOPASSWORD)  | sudo cp linux-amd64/helm /usr/local/bin
-	sudo cp linux-amd64/helm /usr/local/bin
-	${RMD} linux-amd64
-	helm home
-
-.helm-install_orig: .install-helm-bin
-	echo $(SUDOPASSWORD)
+.helm-install_ec2:.install-helm-bin_ec2 
 	kubectl -n kube-system create serviceaccount tiller
 	kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
 	helm init --service-account=tiller
 	-helm repo update
 
+
+.install-helm-bin_ec2:
+	curl -L https://storage.googleapis.com/kubernetes-helm/helm-v2.10.0-rc.2-linux-amd64.tar.gz | tar -xzv
+	sudo -S cp linux-amd64/helm /usr/local/bin
+	${RMD} linux-amd64
+	helm home
 
