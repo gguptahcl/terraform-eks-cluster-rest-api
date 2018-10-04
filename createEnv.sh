@@ -14,7 +14,7 @@ export KUBECONFIG=~/.kube/$FILE_NAME
 
 echo $KUBECONFIG
 
-make SUDOPASSWORD=$SUDO_PASS CLUSTER_NAME=$CLUSTER_NAME .create-eks-cluster
+make CLUSTER_NAME=$CLUSTER_NAME .create-eks-cluster
 
 # echo $KUBECONFIG
 
