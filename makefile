@@ -1,16 +1,14 @@
 RM=/bin/rm -f
 RMD=/bin/rm -Rf
 
-
 .create-eks-cluster:
 	mkdir -p $(CLUSTER_NAME)
 	cp -R base_files/* $(CLUSTER_NAME)
 	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
 	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
-	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;
-	cd $(CLUSTER_NAME);ls;mkdir -p  ~/.kube;sudo mv config ~/.kube
+	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  $(CLUSTER_NAME)-config;
+	cd $(CLUSTER_NAME);ls;mkdir -p  ~/.kube;sudo mv $(CLUSTER_NAME)-config ~/.kube
 	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
-	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
 	cd $(CLUSTER_NAME);ls;rm plan.txt
 	make -s .helm-install
 	make -s CLUSTER_NAME=$(CLUSTER_NAME) .install-kubernetes-dashboard
@@ -160,11 +158,10 @@ RMD=/bin/rm -Rf
 	cp -R base_files/* $(CLUSTER_NAME)
 	cd $(CLUSTER_NAME);ls;sed -i='' "s/<CLUSTER_NAME>/$(CLUSTER_NAME)/" variables.tf
 	cd $(CLUSTER_NAME);ls;terraform init;terraform plan -out plan.txt;terraform apply plan.txt
-	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  config;mv config ~/.kube
+	cd $(CLUSTER_NAME);ls;terraform output config_map_aws_auth  >  awsAuth.yaml;terraform output kubeconfig  >  $(CLUSTER_NAME)-config
+	cd $(CLUSTER_NAME);ls;mv $(CLUSTER_NAME)-config ~/.kube
 	cd $(CLUSTER_NAME);kubectl apply -f awsAuth.yaml
-	kubectl apply -f $(CLUSTER_NAME)/awsAuth.yaml
 	cd $(CLUSTER_NAME);ls;rm plan.txt
 	make -s SUDOPASSWORD=$(SUDOPASSWORD) .helm-install
 	make -s CLUSTER_NAME=$(CLUSTER_NAME) .install-kubernetes-dashboard
 	kubectl get pods -n kube-system
-

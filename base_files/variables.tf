@@ -5,8 +5,8 @@
 # VPC Variable Start
 
 variable "vpc_name" {
-	default = "demo"
-	#default="<CLUSTER_NAME>_VPC"
+	#default = "demo"
+	default="<CLUSTER_NAME>_VPC"
 }
 
 variable "vpc_cidr" {
@@ -71,3 +71,6 @@ variable "aws_autoscaling_group_name" {
 	default="<CLUSTER_NAME>-demo"
 }
 
+variable "instance_type"  {
+	default="t2.small"
+}

@@ -24,7 +24,7 @@ variable "aws_autoscaling_group_name" {
 }
 
 
-variable cluster-name {
+variable "cluster-name" {
 }
 
 variable vpc_subnet_ids { 
@@ -32,6 +32,8 @@ variable vpc_subnet_ids {
 	#default = []
 }
 
-variable aws_region_name  {}
+variable "aws_region_name"  {}
 
+
+variable "instance_type"  {}
 
