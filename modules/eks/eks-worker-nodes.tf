@@ -144,7 +144,7 @@ resource "aws_launch_configuration" "demo" {
 }
 
 resource "aws_autoscaling_group" "demo" {
-  desired_capacity     = 2
+  desired_capacity     = 1
   launch_configuration = "${aws_launch_configuration.demo.id}"
   max_size             = 3
   min_size             = 1
@@ -165,3 +165,23 @@ resource "aws_autoscaling_group" "demo" {
     propagate_at_launch = true
   }
 }
+
+resource "aws_autoscaling_policy" "demo" {
+  name                   = "eks-terraform-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  policy_type	= "TargetTrackingScaling"
+  cooldown               = 300
+  autoscaling_group_name = "${aws_autoscaling_group.demo.name}"
+  
+target_tracking_configuration {
+  predefined_metric_specification {
+    predefined_metric_type = "ASGAverageCPUUtilization"
+  }
+  target_value = 40.0
+}
+
+}
+
+
+
