@@ -168,7 +168,7 @@ resource "aws_autoscaling_group" "demo" {
 
 resource "aws_autoscaling_policy" "demo" {
   name                   = "eks-terraform-policy"
-  scaling_adjustment     = 1
+ # scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   policy_type	= "TargetTrackingScaling"
 
