@@ -37,3 +37,6 @@ variable "aws_region_name"  {}
 
 variable "instance_type"  {}
 
+variable "EC2_KEY_NAME" {
+}
+

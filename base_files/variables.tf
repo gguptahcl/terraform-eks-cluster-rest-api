@@ -74,3 +74,8 @@ variable "aws_autoscaling_group_name" {
 variable "instance_type"  {
 	default="t2.small"
 }
+
+variable "EC2_KEY_NAME"  {
+	default="TerraformEKSDemoKeyPair"
+}
+
