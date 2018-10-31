@@ -31,7 +31,8 @@ module "eks" {
   vpc_id       = "${module.vpc.vpc_id}"
   vpc_subnet_ids = "${module.vpc.vpc_subnet_ids}"
   aws_region_name = "${data.aws_region.current.name}"
-  instance_type    = "${var.instance_type}"	
+  instance_type    = "${var.instance_type}"
+  EC2_KEY_NAME    = "${var.EC2_KEY_NAME}"	
 }
 
 
