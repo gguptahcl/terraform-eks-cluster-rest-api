@@ -180,7 +180,7 @@ target_tracking_configuration {
   predefined_metric_specification {
     predefined_metric_type = "ASGAverageCPUUtilization"
   }
-  target_value = 40.0
+  target_value = 10.0
 }
 
 }
